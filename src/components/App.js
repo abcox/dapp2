@@ -1,10 +1,49 @@
 import React, { Component } from 'react';
-import logo from '../logo.png';
+import Web3 from 'web3';
+import logo from '../logo.svg';
 import './App.css';
+
+const tryEnableEth = async () => {
+  try {
+    if (window.ethereum) {
+      console.log('here 1')
+      window.web3 = new Web3(window.ethereum)
+      //return await window.ethereum.sendAsync('eth_requestAccounts')
+      //accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    } else if (window.web3) {
+      console.log('here 1')
+      window.web3 = new Web3(window.web3.currentProvider)
+    } else {
+      window.alert('Ethereum support required. Try <a src="https://metamask.io/">MetaMask</a>')
+    }
+  } catch (error) {
+    window.alert(`Ethereum support required. ERROR: ${error.message}`)
+    if (error.code === 4001) {
+      window.alert('Ethereum support request denied by user.')
+    } else {
+      window.alert('Try <a src="https://metamask.io/">MetaMask</a>')
+    }
+    //setError(error);
+  }
+}
 
 class App extends Component {
 
-  
+  async componentWillMount() {
+    //await this.loadWeb3()
+    await tryEnableEth()
+    const web3 = window.web3
+    const accounts = await web3.eth.getAccounts()
+    //console.log(`accounts: ${accounts}`)
+    this.setState({ account: accounts[0] })
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      account: ''
+    }
+  }
 
   render() {
     return (
@@ -16,8 +55,13 @@ class App extends Component {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Dapp University
+            Social Network Blockchain Demo
           </a>
+          <ul className="navbar-nav px-3">
+            <li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
+              <small className="text-secondary">{this.state.account}</small>
+            </li>
+          </ul>
         </nav>
         <div className="container-fluid mt-5">
           <div className="row">
@@ -28,9 +72,10 @@ class App extends Component {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img src={logo} className="App-logo" alt="logo" />
+                  <img src={logo} className="app-logo" alt="logo" />
                 </a>
-                <h1>Dapp University Starter Kit</h1>
+                <h1>Social Network Blockchain Demo</h1>
+                <small className="text-secondary">Dapp University Starter Kit</small>
                 <p>
                   Edit <code>src/components/App.js</code> and save to reload.
                 </p>
