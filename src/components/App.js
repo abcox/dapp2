@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Web3 from 'web3';
 import logo from '../logo.svg';
 import './App.css';
+import SocialNetwork from '../abis/SocialNetwork.json';
 import Navbar from './Navbar';
 
 const tryEnableEth = async () => {
@@ -28,19 +29,38 @@ const tryEnableEth = async () => {
 
 class App extends Component {
 
-  async componentWillMount() {
-    //await this.loadWeb3()
-    await tryEnableEth()
+  async loadBlockchainData() {
     const web3 = window.web3
     const accounts = await web3.eth.getAccounts()
-    //console.log(`accounts: ${accounts}`)
     this.setState({ account: accounts[0] })
+
+    // load contract
+    // ref: https://web3js.readthedocs.io/en/v1.2.3/web3-eth-contract.html#new-contract
+    // get network id
+    const networkId = await web3.eth.net.getId()
+    const network = SocialNetwork.networks[networkId]
+    if (network) {
+      const socialNetwork = new web3.eth.Contract(SocialNetwork.abi, network.address)
+      this.setState({ socialNetwork })
+      const postCount = await socialNetwork.methods.postCount().call()
+      this.setState({ postCount })
+      console.log(`postCount: ${postCount}`)
+    } else {
+      alert('SocialNetwork not deployed')      
+    }
+  }
+
+  async componentWillMount() {
+    await tryEnableEth()
+    await this.loadBlockchainData()
   }
 
   constructor(props) {
     super(props)
     this.state = {
-      account: ''
+      account: '',
+      socialNetwork: null,
+      postCount: 0
     }
   }
 
